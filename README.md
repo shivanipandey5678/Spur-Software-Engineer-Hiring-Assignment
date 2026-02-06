@@ -28,6 +28,9 @@ npm run dev
 - **Backend:** `OPENAI_API_KEY`, `PORT`, `FRONTEND_URL`
 - **Frontend:** `VITE_API_URL`
 
+### API testing
+- Tested via **curl** — chat endpoint replies are working.
+
 ## Project Structure
 - `backend/` — Express API, SQLite, OpenAI integration
 - `frontend/` — React chat UI
