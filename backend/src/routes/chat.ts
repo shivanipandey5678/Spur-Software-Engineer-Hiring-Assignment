@@ -87,4 +87,19 @@ router.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok", timestamp: Date.now() });
 });
 
+// Fetch history by sessionId so frontend can restore chat on reload
+router.get("/history/:sessionId", (req: Request, res: Response) => {
+  try {
+    const sessionId = typeof req.params.sessionId === "string" ? req.params.sessionId : req.params.sessionId?.[0];
+    if (!sessionId) return res.status(400).json({ error: "sessionId required" });
+    const conversation = getConversation(sessionId);
+    if (!conversation) return res.json({ messages: [] });
+    const messages = getMessages(sessionId);
+    return res.json({ messages });
+  } catch (err) {
+    console.error("History error:", err);
+    return res.status(500).json({ error: "Failed to fetch history" });
+  }
+});
+
 export default router;
