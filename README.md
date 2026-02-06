@@ -15,42 +15,73 @@ Execution (backend + frontend) was done with **Cursor**, after checking and unde
 
 ---
 
-## Quick Start
+## Local setup & run
 
 ### Prerequisites
-- Node.js 18+
-- OpenAI API key
+- **Node.js 18+**
+- **OpenAI API key** (from platform.openai.com)
 
-### Backend
+### Step 1: Clone & open project
+```bash
+git clone <repo-url>
+cd Spur-Software-Engineer-Hiring-Assignment   # or your folder name
+```
+
+### Step 2: Backend setup & run
 ```bash
 cd backend
 npm install
-cp .env.example .env   # Add your OPENAI_API_KEY
+cp .env.example .env
+```
+- Open **backend/.env** and set:
+  - `OPENAI_API_KEY=sk-your-key`
+  - `PORT=3001` (optional, default 3001)
+  - `FRONTEND_URL=http://localhost:5173` (optional, for CORS)
+
+```bash
 npm run dev
 ```
-Server runs at **http://localhost:3001**.
+- Backend runs at **http://localhost:3001**
+- DB (SQLite) is created automatically on first run (`database.db` in `backend/`).
 
-### Frontend
+### Step 3: Frontend setup & run
+Open a **new terminal**:
 ```bash
 cd frontend
 npm install
-cp .env.example .env   # VITE_API_URL=http://localhost:3001
+cp .env.example .env
+```
+- Open **frontend/.env** and set:
+  - `VITE_API_URL=http://localhost:3001`
+
+```bash
 npm run dev
 ```
-App runs at **http://localhost:5173**.
+- Frontend runs at **http://localhost:5173**
+- Open this URL in browser to use the chat.
 
-### Environment Variables
+### Summary (local)
+| App      | Port | URL |
+|----------|------|-----|
+| Backend  | 3001 | http://localhost:3001 |
+| Frontend | 5173 | http://localhost:5173 |
+
+### Deployed (live)
+| App      | URL |
+|----------|-----|
+| **Frontend** | **https://spur-frontend-livid.vercel.app/** |
+| **Backend**  | **https://spur-software-engineer-hiring-assignment.onrender.com** |
+
+For the deployed frontend, the backend API is set as:
+- `VITE_API_URL=https://spur-software-engineer-hiring-assignment.onrender.com`
+
+### Environment variables (reference)
 | Where     | Variable        | Purpose |
 |----------|------------------|--------|
-| Backend  | `OPENAI_API_KEY` | OpenAI API key |
+| Backend  | `OPENAI_API_KEY` | OpenAI API key (required) |
 | Backend  | `PORT`           | Server port (default 3001) |
 | Backend  | `FRONTEND_URL`   | Frontend origin (for CORS in production) |
-| Frontend | `VITE_API_URL`   | Backend API base URL (e.g. http://localhost:3001) |
-
-### API (tested via curl)
-- **POST /chat/message** — body: `{ message, sessionId? }` → `{ reply, sessionId }`
-- **GET /chat/history/:sessionId** — returns `{ messages }` for restoring chat on reload
-- **GET /chat/health** — health check
+| Frontend | `VITE_API_URL`   | Backend API base URL. Local: `http://localhost:3001`. Production: `https://spur-software-engineer-hiring-assignment.onrender.com` |
 
 ---
 
@@ -134,6 +165,38 @@ App runs at **http://localhost:5173**.
 - **Phases, steps, and exact snippets:** [PLAN.md](./PLAN.md)  
 - **Assignment requirements checklist:** [ASSIGNMENT.md](./ASSIGNMENT.md)  
 - **Step-by-step guide:** [STEP-BY-STEP-GUIDE.md](./STEP-BY-STEP-GUIDE.md)
+
+---
+
+## APIs (Backend)
+
+Base URL (local): **http://localhost:3001**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Root; returns `{ message, status }`. |
+| GET | `/chat/health` | Health check. Returns `{ status: "ok", timestamp }`. |
+| POST | `/chat/message` | Send a chat message; returns AI reply and session id. |
+| GET | `/chat/history/:sessionId` | Get all messages for a session (for restoring chat on reload). |
+
+### POST /chat/message
+- **Body:** `{ "message": "user text", "sessionId": "optional-uuid" }`
+- **Success (200):** `{ "reply": "AI response", "sessionId": "uuid" }`
+- **Validation:** `message` required, non-empty string, max 1000 chars. Empty/long messages get 400 or a friendly reply in body.
+- **Example (curl):**
+  ```bash
+  curl -X POST http://localhost:3001/chat/message \
+    -H "Content-Type: application/json" \
+    -d '{"message":"Do you ship to USA?"}'
+  ```
+
+### GET /chat/history/:sessionId
+- **Params:** `sessionId` — conversation/session UUID (e.g. from previous POST response).
+- **Success (200):** `{ "messages": [ { "id", "conversationId", "sender", "text", "timestamp" }, ... ] }`
+- If session doesn’t exist: `{ "messages": [] }`.
+
+### GET /chat/health
+- **Success (200):** `{ "status": "ok", "timestamp": 1234567890 }`
 
 ---
 
